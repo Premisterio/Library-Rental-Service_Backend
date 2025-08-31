@@ -65,9 +65,10 @@ app.use(errorHandler);
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on port http://localhost:${PORT}`);
     console.log(`API started successfully!`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Swagger Documentation available on: http://localhost:${PORT}/api-docs/`);
 });
 
 // Error handling
