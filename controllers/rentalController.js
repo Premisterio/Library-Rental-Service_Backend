@@ -4,6 +4,15 @@ const Reader = require('../models/Reader');
 const { asyncHandler } = require('../middleware/errorHandler');
 const createError = require('http-errors');
 
+// Helper functions for rental calculations (to reduce complexity)
+const calculateRentalDays = (startDate, endDate) => {
+    return Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24));
+};
+
+const calculateDiscountAmount = (baseCost, discountedCost) => {
+    return baseCost - discountedCost;
+};
+
 const getAllRentals = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, status, reader, book } = req.query;
     
@@ -86,11 +95,12 @@ const createRental = asyncHandler(async (req, res) => {
         throw createError(400, 'Reader has reached maximum rental limit (3 books)');
     }
     
-    // Creates a new rental record, calculating the discount based on:
-    // 1. Rental duration (days between today and expected return) rentalPricePerDay - (rentalPricePerDay * duration)
-    // 2. Base cost (daily rate × duration)
-    // 3. Reader-specific discount applied to base cost 
-    // 4. Final discount amount (base cost - discounted cost)
+    // Calculate rental pricing
+    const rentalDays = calculateRentalDays(new Date(), expectedReturnDate);
+    const baseCost = book.rentalPricePerDay * rentalDays;
+    const discountedCost = reader.calculateDiscountedPrice(baseCost);
+    const discountAmount = calculateDiscountAmount(baseCost, discountedCost);
+
     const rental = new Rental({
         book: bookId,
         reader: readerId,
@@ -98,7 +108,7 @@ const createRental = asyncHandler(async (req, res) => {
         expectedReturnDate: new Date(expectedReturnDate),
         depositAmount: book.depositAmount,
         rentalPricePerDay: book.rentalPricePerDay,
-        discountAmount: reader.calculateDiscountedPrice(book.rentalPricePerDay * Math.ceil((new Date(expectedReturnDate) - new Date()) / (1000 * 60 * 60 * 24))) - (book.rentalPricePerDay * Math.ceil((new Date(expectedReturnDate) - new Date()) / (1000 * 60 * 60 * 24)))
+        discountAmount: discountAmount
     });
     
     await rental.save();
