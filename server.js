@@ -3,13 +3,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 require('dotenv').config();
 const connectDB = require('./config/database');
-const errorHandler = require('./middleware/errorHandler');
+const { errorHandler } = require('./middleware/errorHandler');
+const { specs, swaggerUi } = require('./config/swagger');
 
-// TODO: Create and import routes
-// const bookRoutes = require('./routes/books');
-// const readerRoutes = require('./routes/readers');
-// const rentalRoutes = require('./routes/rentals');
-// const authRoutes = require('./routes/auth');
+const authRoutes = require('./routes/auth');
+const bookRoutes = require('./routes/books');
+const readerRoutes = require('./routes/readers');
+const rentalRoutes = require('./routes/rentals');
 
 const app = express();
 
@@ -24,15 +24,23 @@ app.use(cors({
   credentials: true
 }));
 
-// TODO: API Routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/books', bookRoutes);
-// app.use('/api/readers', readerRoutes);
-// app.use('/api/rentals', rentalRoutes);
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Library Management API Documentation'
+}));
+
+// API Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/books', bookRoutes);
+app.use('/api/readers', readerRoutes);
+app.use('/api/rentals', rentalRoutes);
 
 app.get('/', (req, res) => {
     res.json({ 
-        message: 'Library Rental System API is running!'
+        message: 'Library Rental System API is running!',
+        documentation: '/api-docs'
     });
 });
 
@@ -45,7 +53,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// 404
+// 404 handler
 app.use('*', (req, res, next) => {
     const error = new Error(`Route ${req.originalUrl} not found`);
     error.status = 404;
@@ -56,7 +64,6 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT;
 
-// Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`API started successfully!`);
