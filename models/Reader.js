@@ -75,8 +75,6 @@ readerSchema.pre('save', function(next) {
 });
 
 readerSchema.index({ lastName: 1, firstName: 1 });
-readerSchema.index({ phone: 1 }, { unique: true });
-readerSchema.index({ email: 1 }, { unique: true, sparse: true });
 
 readerSchema.virtual('fullName').get(function() {
     if (this.middleName) {
