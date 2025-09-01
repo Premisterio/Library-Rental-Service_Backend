@@ -95,18 +95,27 @@ const updateBook = asyncHandler(async (req, res) => {
         throw createError(404, 'Book not found');
     }
     
-    const { title, author, genre, depositAmount, rentalPricePerDay, totalCopies, availableCopies, isActive } = req.body;
+    // Build an update object that only includes defined values
+    const updates = {};
+    const fields = [
+        "title", 
+        "author", 
+        "genre", 
+        "depositAmount", 
+        "rentalPricePerDay", 
+        "totalCopies", 
+        "availableCopies", 
+        "isActive"
+    ];
     
-    // dynamic db query filters for
-    if (title) book.title = title;
-    if (author) book.author = author;
-    if (genre) book.genre = genre;
-    if (depositAmount !== undefined) book.depositAmount = depositAmount;
-    if (rentalPricePerDay !== undefined) book.rentalPricePerDay = rentalPricePerDay;
-    if (totalCopies !== undefined) book.totalCopies = totalCopies;
-    if (availableCopies !== undefined) book.availableCopies = availableCopies;
-    if (isActive !== undefined) book.isActive = isActive;
+    fields.forEach(field => {
+        if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+        }
+    });
     
+    // Apply updates
+    Object.assign(book, updates);
     await book.save();
     
     res.json({

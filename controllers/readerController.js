@@ -96,8 +96,9 @@ const updateReader = asyncHandler(async (req, res) => {
         throw createError(404, 'Reader not found');
     }
     
-    const { lastName, firstName, middleName, address, phone, email, category, isActive } = req.body;
+    const { phone, email } = req.body;
     
+    // Check for unique constraints before updating
     if (phone && phone !== reader.phone) {
         const existingPhone = await Reader.findOne({ phone });
         if (existingPhone) {
@@ -112,16 +113,27 @@ const updateReader = asyncHandler(async (req, res) => {
         }
     }
 
-    // dynamic db query filters for reader querying
-    if (lastName) reader.lastName = lastName;
-    if (firstName) reader.firstName = firstName;
-    if (middleName !== undefined) reader.middleName = middleName;
-    if (address) reader.address = address;
-    if (phone) reader.phone = phone;
-    if (email !== undefined) reader.email = email;
-    if (category) reader.category = category;
-    if (isActive !== undefined) reader.isActive = isActive;
+    // Build an update object that only includes defined values
+    const updates = {};
+    const fields = [
+        "lastName", 
+        "firstName", 
+        "middleName", 
+        "address", 
+        "phone", 
+        "email", 
+        "category", 
+        "isActive"
+    ];
     
+    fields.forEach(field => {
+        if (req.body[field] !== undefined) {
+            updates[field] = req.body[field];
+        }
+    });
+    
+    // Apply updates
+    Object.assign(reader, updates);
     await reader.save();
     
     res.json({
