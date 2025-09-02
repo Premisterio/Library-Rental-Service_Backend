@@ -191,7 +191,7 @@ const getRentalStats = asyncHandler(async (req, res) => {
     const stats = await Promise.all([
         Rental.countDocuments({ status: 'active' }),
         Rental.countDocuments({ status: 'overdue' }),
-        Rental.countDocuments({ status: 'returned' }),
+        Rental.countDocuments({}), // Total rentals count
         Rental.aggregate([
             { $match: { status: 'returned' } },
             { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } }
@@ -203,7 +203,7 @@ const getRentalStats = asyncHandler(async (req, res) => {
         data: {
             activeRentals: stats[0],
             overdueRentals: stats[1],
-            completedRentals: stats[2],
+            totalRentals: stats[2], // Changed from completedRentals to totalRentals
             totalRevenue: stats[3][0]?.totalRevenue || 0
         }
     });
