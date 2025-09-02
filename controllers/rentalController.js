@@ -167,25 +167,23 @@ const getOverdueRentals = asyncHandler(async (req, res) => {
     });
 });
 
-const getReaderRentals = asyncHandler(async (req, res) => {
-    const { readerId } = req.params;
-    const { status = 'all' } = req.query;
-    
-    const query = { reader: readerId };
-    
-    if (status !== 'all') {
-        query.status = status;
+const getReaderRentals = async (req, res, next) => {
+    try {
+        const { readerId } = req.params;
+        
+        const rentals = await Rental.find({ reader: readerId })
+            .populate('book', 'title author genre')
+            .populate('reader', 'firstName lastName middleName phone category discountPercentage')
+            .sort({ issueDate: -1 });
+        
+        res.json({
+            success: true,
+            data: { rentals }
+        });
+    } catch (error) {
+        next(error);
     }
-    
-    const rentals = await Rental.find(query)
-        .populate('book', 'title author genre')
-        .sort({ issueDate: -1 });
-    
-    res.json({
-        success: true,
-        data: { rentals }
-    });
-});
+};
 
 const getRentalStats = asyncHandler(async (req, res) => {
     const stats = await Promise.all([
