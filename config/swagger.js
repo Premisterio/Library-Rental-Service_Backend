@@ -5,10 +5,32 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Library Management API',
-      version: '1.0.0',
-      description: 'Library management system API',
+      title: 'Book Rental API',
+      version: '2.0.0',
+      description: 'Comprehensive API documentation for the Library Rental System. This API provides endpoints for managing books, readers, rentals, and authentication.',
     },
+    tags: [
+      {
+        name: 'Authentication',
+        description: 'User authentication and authorization endpoints'
+      },
+      {
+        name: 'Books',
+        description: 'Book management endpoints'
+      },
+      {
+        name: 'Readers',
+        description: 'Reader management endpoints'
+      },
+      {
+        name: 'Rentals',
+        description: 'Book rental management endpoints'
+      },
+      {
+        name: 'System',
+        description: 'System health and status endpoints'
+      }
+    ],
     servers: [
       {
         url: 
@@ -249,6 +271,56 @@ const options = {
             status: {
               type: 'number',
               description: 'HTTP status code',
+            },
+            details: {
+              type: 'object',
+              description: 'Additional error details',
+            },
+          },
+        },
+        SuccessResponse: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: true,
+            },
+            message: {
+              type: 'string',
+              description: 'Success message',
+            },
+            data: {
+              type: 'object',
+              description: 'Response data',
+            },
+          },
+        },
+        PaginationMeta: {
+          type: 'object',
+          properties: {
+            totalPages: {
+              type: 'integer',
+              description: 'Total number of pages',
+            },
+            currentPage: {
+              type: 'integer',
+              description: 'Current page number',
+            },
+            totalItems: {
+              type: 'integer',
+              description: 'Total number of items',
+            },
+            itemsPerPage: {
+              type: 'integer',
+              description: 'Number of items per page',
+            },
+            hasNextPage: {
+              type: 'boolean',
+              description: 'Whether there is a next page',
+            },
+            hasPrevPage: {
+              type: 'boolean',
+              description: 'Whether there is a previous page',
             },
           },
         },

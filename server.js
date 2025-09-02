@@ -37,6 +37,27 @@ app.use('/api/books', bookRoutes);
 app.use('/api/readers', readerRoutes);
 app.use('/api/rentals', rentalRoutes);
 
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: API root endpoint
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: API is running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Library Rental System API is running!
+ *                 documentation:
+ *                   type: string
+ *                   example: /api-docs
+ */
 app.get('/', (req, res) => {
     res.json({ 
         message: 'Library Rental System API is running!',
@@ -44,6 +65,35 @@ app.get('/', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     summary: Health check endpoint
+ *     tags: [System]
+ *     responses:
+ *       200:
+ *         description: API health status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: API is OK
+ *                 timestamp:
+ *                   type: string
+ *                   format: date-time
+ *                   example: 2024-01-01T00:00:00.000Z
+ *                 uptime:
+ *                   type: number
+ *                   description: Server uptime in seconds
+ *                   example: 3600
+ */
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
