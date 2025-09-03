@@ -13,16 +13,9 @@ const {
 
 /**
  * @swagger
- * tags:
- *   name: Readers
- *   description: Reader management endpoints
- */
-
-/**
- * @swagger
  * /api/readers:
  *   get:
- *     summary: Get all readers
+ *     summary: Get all readers with optional filtering and pagination
  *     tags: [Readers]
  *     security:
  *       - bearerAuth: []
@@ -31,27 +24,32 @@ const {
  *         name: page
  *         schema:
  *           type: integer
+ *           minimum: 1
  *           default: 1
- *         description: Page number
+ *         description: Page number for pagination
+ *         example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           minimum: 1
+ *           maximum: 100
  *           default: 10
- *         description: Items per page
+ *         description: Number of items per page
+ *         example: 10
  *       - in: query
- *         name: sortBy
+ *         name: search
  *         schema:
  *           type: string
- *           enum: [lastName, firstName, registrationDate]
- *         description: Sort field
+ *         description: Search by name, email, or phone
+ *         example: "john"
  *       - in: query
- *         name: sortOrder
+ *         name: category
  *         schema:
  *           type: string
- *           enum: [asc, desc]
- *           default: asc
- *         description: Sort order
+ *           enum: [regular, student, senior, employee]
+ *         description: Filter by reader category
+ *         example: "student"
  *     responses:
  *       200:
  *         description: List of readers retrieved successfully
@@ -60,18 +58,20 @@ const {
  *             schema:
  *               type: object
  *               properties:
- *                 readers:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Reader'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalReaders:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     readers:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Reader'
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationMeta'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -89,7 +89,7 @@ router.get('/', authenticateToken, getAllReaders);
  * @swagger
  * /api/readers/search:
  *   get:
- *     summary: Search readers
+ *     summary: Search readers by name, email, or phone
  *     tags: [Readers]
  *     security:
  *       - bearerAuth: []
@@ -99,19 +99,9 @@ router.get('/', authenticateToken, getAllReaders);
  *         required: true
  *         schema:
  *           type: string
+ *           minLength: 1
  *         description: Search query (searches in name, email, phone)
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
+ *         example: "john smith"
  *     responses:
  *       200:
  *         description: Search results retrieved successfully
@@ -120,18 +110,24 @@ router.get('/', authenticateToken, getAllReaders);
  *             schema:
  *               type: object
  *               properties:
- *                 readers:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Reader'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalReaders:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     readers:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Reader'
+ *       400:
+ *         description: Bad request - Missing search query
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -161,18 +157,7 @@ router.get('/search', authenticateToken, searchReaders);
  *           type: string
  *           enum: [regular, student, senior, employee]
  *         description: Reader category
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
+ *         example: "student"
  *     responses:
  *       200:
  *         description: Readers retrieved successfully
@@ -181,18 +166,18 @@ router.get('/search', authenticateToken, searchReaders);
  *             schema:
  *               type: object
  *               properties:
- *                 readers:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Reader'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalReaders:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     readers:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/Reader'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -220,16 +205,33 @@ router.get('/category/:category', authenticateToken, getReadersByCategory);
  *         required: true
  *         schema:
  *           type: string
- *         description: Reader ID
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Reader ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     responses:
  *       200:
  *         description: Reader retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reader'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reader:
+ *                       $ref: '#/components/schemas/Reader'
+ *       400:
+ *         description: Invalid ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -273,51 +275,81 @@ router.get('/:id', authenticateToken, getReaderById);
  *                 type: string
  *                 maxLength: 50
  *                 description: Last name
+ *                 example: "Smith"
  *               firstName:
  *                 type: string
  *                 maxLength: 50
  *                 description: First name
+ *                 example: "John"
  *               middleName:
  *                 type: string
  *                 maxLength: 50
- *                 description: Middle name
+ *                 description: Middle name (optional)
+ *                 example: "Michael"
  *               address:
  *                 type: string
  *                 maxLength: 200
- *                 description: Address
+ *                 description: Full address
+ *                 example: "123 Main St, City, State 12345"
  *               phone:
  *                 type: string
- *                 description: Phone number
+ *                 description: Phone number (must be unique)
+ *                 example: "+1234567890"
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Email address
+ *                 description: Email address (optional, must be unique if provided)
+ *                 example: "john.smith@example.com"
  *               category:
  *                 type: string
  *                 enum: [regular, student, senior, employee]
  *                 default: regular
- *                 description: Reader category
- *               discountPercentage:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 100
- *                 default: 0
- *                 description: Discount percentage
+ *                 description: Reader category (affects discount percentage)
+ *                 example: "student"
+ *           examples:
+ *             reader_example:
+ *               summary: Sample reader creation
+ *               value:
+ *                 lastName: "Smith"
+ *                 firstName: "John"
+ *                 middleName: "Michael"
+ *                 address: "123 Main St, City, State 12345"
+ *                 phone: "+1234567890"
+ *                 email: "john.smith@example.com"
+ *                 category: "student"
  *     responses:
  *       201:
  *         description: Reader created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reader'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reader created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reader:
+ *                       $ref: '#/components/schemas/Reader'
  *       400:
- *         description: Bad request
+ *         description: Bad request - Invalid input data
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Conflict - Reader with phone/email already exists
  *         content:
  *           application/json:
  *             schema:
@@ -345,7 +377,9 @@ router.post('/', authenticateToken, createReader);
  *         required: true
  *         schema:
  *           type: string
- *         description: Reader ID
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Reader ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     requestBody:
  *       required: true
  *       content:
@@ -357,58 +391,86 @@ router.post('/', authenticateToken, createReader);
  *                 type: string
  *                 maxLength: 50
  *                 description: Last name
+ *                 example: "Smith"
  *               firstName:
  *                 type: string
  *                 maxLength: 50
  *                 description: First name
+ *                 example: "John"
  *               middleName:
  *                 type: string
  *                 maxLength: 50
  *                 description: Middle name
+ *                 example: "Michael"
  *               address:
  *                 type: string
  *                 maxLength: 200
- *                 description: Address
+ *                 description: Full address
+ *                 example: "456 New St, City, State 12345"
  *               phone:
  *                 type: string
- *                 description: Phone number
+ *                 description: Phone number (must be unique)
+ *                 example: "+1234567891"
  *               email:
  *                 type: string
  *                 format: email
- *                 description: Email address
+ *                 description: Email address (must be unique if provided)
+ *                 example: "john.smith.updated@example.com"
  *               category:
  *                 type: string
  *                 enum: [regular, student, senior, employee]
- *                 description: Reader category
- *               discountPercentage:
- *                 type: number
- *                 minimum: 0
- *                 maximum: 100
- *                 description: Discount percentage
+ *                 description: Reader category (affects discount percentage)
+ *                 example: "employee"
  *               isActive:
  *                 type: boolean
  *                 description: Reader active status
+ *                 example: true
+ *           examples:
+ *             reader_update:
+ *               summary: Sample reader update
+ *               value:
+ *                 address: "456 New St, City, State 12345"
+ *                 email: "john.smith.updated@example.com"
+ *                 category: "employee"
  *     responses:
  *       200:
  *         description: Reader updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Reader'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reader updated successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reader:
+ *                       $ref: '#/components/schemas/Reader'
  *       400:
- *         description: Bad request
+ *         description: Bad request - Invalid input data
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       409:
+ *         description: Conflict - Phone/email already in use
  *         content:
  *           application/json:
  *             schema:
@@ -426,7 +488,7 @@ router.put('/:id', authenticateToken, updateReader);
  * @swagger
  * /api/readers/{id}:
  *   delete:
- *     summary: Delete a reader
+ *     summary: Delete a reader (soft delete - sets isActive to false)
  *     tags: [Readers]
  *     security:
  *       - bearerAuth: []
@@ -436,7 +498,9 @@ router.put('/:id', authenticateToken, updateReader);
  *         required: true
  *         schema:
  *           type: string
- *         description: Reader ID
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Reader ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     responses:
  *       200:
  *         description: Reader deleted successfully
@@ -445,11 +509,14 @@ router.put('/:id', authenticateToken, updateReader);
  *             schema:
  *               type: object
  *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 message:
  *                   type: string
- *                   example: Reader deleted successfully
+ *                   example: "Reader deleted successfully"
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:

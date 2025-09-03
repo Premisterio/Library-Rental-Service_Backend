@@ -14,16 +14,9 @@ const {
 
 /**
  * @swagger
- * tags:
- *   name: Rentals
- *   description: Book rental management endpoints
- */
-
-/**
- * @swagger
  * /api/rentals:
  *   get:
- *     summary: Get all rentals
+ *     summary: Get all rentals with optional filtering and pagination
  *     tags: [Rentals]
  *     security:
  *       - bearerAuth: []
@@ -32,33 +25,40 @@ const {
  *         name: page
  *         schema:
  *           type: integer
+ *           minimum: 1
  *           default: 1
- *         description: Page number
+ *         description: Page number for pagination
+ *         example: 1
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           minimum: 1
+ *           maximum: 100
  *           default: 10
- *         description: Items per page
+ *         description: Number of items per page
+ *         example: 10
  *       - in: query
  *         name: status
  *         schema:
  *           type: string
  *           enum: [active, returned, overdue]
  *         description: Filter by rental status
+ *         example: "active"
  *       - in: query
- *         name: sortBy
+ *         name: reader
  *         schema:
  *           type: string
- *           enum: [rentDate, dueDate, returnDate]
- *         description: Sort field
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Filter by reader ID
+ *         example: "64f123456789abcdef123456"
  *       - in: query
- *         name: sortOrder
+ *         name: book
  *         schema:
  *           type: string
- *           enum: [asc, desc]
- *           default: desc
- *         description: Sort order
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Filter by book ID
+ *         example: "64f123456789abcdef123456"
  *     responses:
  *       200:
  *         description: List of rentals retrieved successfully
@@ -67,18 +67,41 @@ const {
  *             schema:
  *               type: object
  *               properties:
- *                 rentals:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Rental'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalRentals:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rentals:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Rental'
+ *                           - type: object
+ *                             properties:
+ *                               book:
+ *                                 type: object
+ *                                 properties:
+ *                                   title:
+ *                                     type: string
+ *                                   author:
+ *                                     type: string
+ *                                   genre:
+ *                                     type: string
+ *                               reader:
+ *                                 type: object
+ *                                 properties:
+ *                                   firstName:
+ *                                     type: string
+ *                                   lastName:
+ *                                     type: string
+ *                                   phone:
+ *                                     type: string
+ *                     pagination:
+ *                       $ref: '#/components/schemas/PaginationMeta'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -100,19 +123,6 @@ router.get('/', authenticateToken, getAllRentals);
  *     tags: [Rentals]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
  *     responses:
  *       200:
  *         description: Active rentals retrieved successfully
@@ -121,18 +131,35 @@ router.get('/', authenticateToken, getAllRentals);
  *             schema:
  *               type: object
  *               properties:
- *                 rentals:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Rental'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalRentals:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rentals:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Rental'
+ *                           - type: object
+ *                             properties:
+ *                               book:
+ *                                 type: object
+ *                                 properties:
+ *                                   title:
+ *                                     type: string
+ *                                   author:
+ *                                     type: string
+ *                               reader:
+ *                                 type: object
+ *                                 properties:
+ *                                   firstName:
+ *                                     type: string
+ *                                   lastName:
+ *                                     type: string
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -154,19 +181,6 @@ router.get('/active', authenticateToken, getActiveRentals);
  *     tags: [Rentals]
  *     security:
  *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
  *     responses:
  *       200:
  *         description: Overdue rentals retrieved successfully
@@ -175,18 +189,37 @@ router.get('/active', authenticateToken, getActiveRentals);
  *             schema:
  *               type: object
  *               properties:
- *                 rentals:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Rental'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalRentals:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rentals:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Rental'
+ *                           - type: object
+ *                             properties:
+ *                               book:
+ *                                 type: object
+ *                                 properties:
+ *                                   title:
+ *                                     type: string
+ *                                   author:
+ *                                     type: string
+ *                               reader:
+ *                                 type: object
+ *                                 properties:
+ *                                   firstName:
+ *                                     type: string
+ *                                   lastName:
+ *                                     type: string
+ *                                   phone:
+ *                                     type: string
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -204,7 +237,7 @@ router.get('/overdue', authenticateToken, getOverdueRentals);
  * @swagger
  * /api/rentals/stats:
  *   get:
- *     summary: Get rental statistics
+ *     summary: Get rental statistics and analytics
  *     tags: [Rentals]
  *     security:
  *       - bearerAuth: []
@@ -216,37 +249,30 @@ router.get('/overdue', authenticateToken, getOverdueRentals);
  *             schema:
  *               type: object
  *               properties:
- *                 totalRentals:
- *                   type: integer
- *                   description: Total number of rentals
- *                 activeRentals:
- *                   type: integer
- *                   description: Number of active rentals
- *                 overdueRentals:
- *                   type: integer
- *                   description: Number of overdue rentals
- *                 returnedRentals:
- *                   type: integer
- *                   description: Number of returned rentals
- *                 totalFinesCollected:
- *                   type: number
- *                   description: Total fines collected
- *                 averageRentalDuration:
- *                   type: number
- *                   description: Average rental duration in days
- *                 mostRentedBooks:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       bookId:
- *                         type: string
- *                       title:
- *                         type: string
- *                       rentCount:
- *                         type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     activeRentals:
+ *                       type: integer
+ *                       description: Number of currently active rentals
+ *                       example: 25
+ *                     overdueRentals:
+ *                       type: integer
+ *                       description: Number of overdue rentals
+ *                       example: 3
+ *                     totalRentals:
+ *                       type: integer
+ *                       description: Total number of all rentals
+ *                       example: 150
+ *                     totalRevenue:
+ *                       type: number
+ *                       description: Total revenue from completed rentals
+ *                       example: 1250.50
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -274,25 +300,9 @@ router.get('/stats', authenticateToken, getRentalStats);
  *         required: true
  *         schema:
  *           type: string
- *         description: Reader ID
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Items per page
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [active, returned, overdue]
- *         description: Filter by rental status
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Reader ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     responses:
  *       200:
  *         description: Reader rentals retrieved successfully
@@ -301,18 +311,51 @@ router.get('/stats', authenticateToken, getRentalStats);
  *             schema:
  *               type: object
  *               properties:
- *                 rentals:
- *                   type: array
- *                   items:
- *                     $ref: '#/components/schemas/Rental'
- *                 totalPages:
- *                   type: integer
- *                 currentPage:
- *                   type: integer
- *                 totalRentals:
- *                   type: integer
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rentals:
+ *                       type: array
+ *                       items:
+ *                         allOf:
+ *                           - $ref: '#/components/schemas/Rental'
+ *                           - type: object
+ *                             properties:
+ *                               book:
+ *                                 type: object
+ *                                 properties:
+ *                                   title:
+ *                                     type: string
+ *                                   author:
+ *                                     type: string
+ *                                   genre:
+ *                                     type: string
+ *                               reader:
+ *                                 type: object
+ *                                 properties:
+ *                                   firstName:
+ *                                     type: string
+ *                                   lastName:
+ *                                     type: string
+ *                                   middleName:
+ *                                     type: string
+ *                                   phone:
+ *                                     type: string
+ *                                   category:
+ *                                     type: string
+ *                                   discountPercentage:
+ *                                     type: number
+ *       400:
+ *         description: Invalid reader ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -336,7 +379,7 @@ router.get('/reader/:readerId', authenticateToken, getReaderRentals);
  * @swagger
  * /api/rentals/{id}:
  *   get:
- *     summary: Get rental by ID
+ *     summary: Get rental by ID with full book and reader details
  *     tags: [Rentals]
  *     security:
  *       - bearerAuth: []
@@ -346,16 +389,40 @@ router.get('/reader/:readerId', authenticateToken, getReaderRentals);
  *         required: true
  *         schema:
  *           type: string
- *         description: Rental ID
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Rental ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     responses:
  *       200:
  *         description: Rental retrieved successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Rental'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rental:
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/Rental'
+ *                         - type: object
+ *                           properties:
+ *                             book:
+ *                               $ref: '#/components/schemas/Book'
+ *                             reader:
+ *                               $ref: '#/components/schemas/Reader'
+ *       400:
+ *         description: Invalid rental ID format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -392,33 +459,89 @@ router.get('/:id', authenticateToken, getRentalById);
  *             required:
  *               - readerId
  *               - bookId
- *               - dueDate
+ *               - expectedReturnDate
  *             properties:
  *               readerId:
  *                 type: string
- *                 description: Reader ID
+ *                 pattern: '^[0-9a-fA-F]{24}$'
+ *                 description: Reader ID (MongoDB ObjectId)
+ *                 example: "64f123456789abcdef123456"
  *               bookId:
  *                 type: string
- *                 description: Book ID
- *               dueDate:
+ *                 pattern: '^[0-9a-fA-F]{24}$'
+ *                 description: Book ID (MongoDB ObjectId)
+ *                 example: "64f123456789abcdef123456"
+ *               expectedReturnDate:
  *                 type: string
  *                 format: date-time
- *                 description: Due date for return
+ *                 description: Expected return date (ISO 8601 format)
+ *                 example: "2024-01-15T10:00:00.000Z"
+ *           examples:
+ *             rental_example:
+ *               summary: Sample rental creation
+ *               value:
+ *                 readerId: "64f123456789abcdef123456"
+ *                 bookId: "64f123456789abcdef123456"
+ *                 expectedReturnDate: "2024-01-15T10:00:00.000Z"
  *     responses:
  *       201:
  *         description: Rental created successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Rental'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Rental created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rental:
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/Rental'
+ *                         - type: object
+ *                           properties:
+ *                             book:
+ *                               type: object
+ *                               properties:
+ *                                 title:
+ *                                   type: string
+ *                                 author:
+ *                                   type: string
+ *                             reader:
+ *                               type: object
+ *                               properties:
+ *                                 firstName:
+ *                                   type: string
+ *                                 lastName:
+ *                                   type: string
  *       400:
- *         description: Bad request or book not available
+ *         description: Bad request - Invalid data, book not available, or reader limit reached
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *             examples:
+ *               book_not_available:
+ *                 summary: Book not available
+ *                 value:
+ *                   success: false
+ *                   error:
+ *                     message: "Book is not available for rental"
+ *                     status: 400
+ *               reader_limit:
+ *                 summary: Reader limit reached
+ *                 value:
+ *                   success: false
+ *                   error:
+ *                     message: "Reader has reached maximum rental limit (3 books)"
+ *                     status: 400
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
@@ -452,17 +575,35 @@ router.post('/', authenticateToken, createRental);
  *         required: true
  *         schema:
  *           type: string
- *         description: Rental ID
+ *           pattern: '^[0-9a-fA-F]{24}$'
+ *         description: Rental ID (MongoDB ObjectId)
+ *         example: "64f123456789abcdef123456"
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               fine:
+ *               fineAmount:
  *                 type: number
  *                 minimum: 0
- *                 description: Fine amount if applicable
+ *                 description: Fine amount if book is overdue or damaged
+ *                 example: 5.00
+ *               notes:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Additional notes about the return
+ *                 example: "Book returned in good condition"
+ *           examples:
+ *             return_with_fine:
+ *               summary: Return with fine
+ *               value:
+ *                 fineAmount: 5.00
+ *                 notes: "Book was returned 2 days late"
+ *             return_normal:
+ *               summary: Normal return
+ *               value:
+ *                 notes: "Book returned in good condition"
  *     responses:
  *       200:
  *         description: Book returned successfully
@@ -471,22 +612,40 @@ router.post('/', authenticateToken, createRental);
  *             schema:
  *               type: object
  *               properties:
- *                 rental:
- *                   $ref: '#/components/schemas/Rental'
+ *                 success:
+ *                   type: boolean
+ *                   example: true
  *                 message:
  *                   type: string
- *                   example: Book returned successfully
- *                 fine:
- *                   type: number
- *                   description: Fine amount if overdue
+ *                   example: "Book returned successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rental:
+ *                       allOf:
+ *                         - $ref: '#/components/schemas/Rental'
+ *                         - type: object
+ *                           properties:
+ *                             book:
+ *                               $ref: '#/components/schemas/Book'
+ *                             reader:
+ *                               $ref: '#/components/schemas/Reader'
  *       400:
- *         description: Bad request or book already returned
+ *         description: Bad request - Book already returned or invalid data
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *             examples:
+ *               already_returned:
+ *                 summary: Book already returned
+ *                 value:
+ *                   success: false
+ *                   error:
+ *                     message: "Book has already been returned"
+ *                     status: 400
  *       401:
- *         description: Unauthorized
+ *         description: Unauthorized - Missing or invalid token
  *         content:
  *           application/json:
  *             schema:
