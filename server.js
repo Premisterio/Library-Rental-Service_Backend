@@ -53,14 +53,14 @@ app.use('/api/rentals', rentalRoutes);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Library Rental System API is running!
+ *                   example: Book Rental System API is running!
  *                 documentation:
  *                   type: string
  *                   example: /api-docs
  */
 app.get('/', (req, res) => {
     res.json({ 
-        message: 'Library Rental System API is running!',
+        message: 'Book Rental System API is running!',
         documentation: '/api-docs'
     });
 });
@@ -94,6 +94,8 @@ app.get('/', (req, res) => {
  *                   description: Server uptime in seconds
  *                   example: 3600
  */
+
+// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
