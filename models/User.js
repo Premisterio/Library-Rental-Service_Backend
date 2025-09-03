@@ -22,11 +22,6 @@ const userSchema = new mongoose.Schema({
         required: true,
         minlength: 6
     },
-    role: {
-        type: String,
-        enum: ['admin', 'librarian', 'reader'],
-        default: 'reader'
-    },
     isActive: {
         type: Boolean,
         default: true
@@ -54,6 +49,5 @@ userSchema.methods.toJSON = function() {
     delete userObject.password;
     return userObject;
 };
-
 
 module.exports = mongoose.model('User', userSchema);

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireLibrarian, requireOwnershipOrLibrarian } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const {
     getAllReaders,
     getReaderById,
@@ -76,12 +76,6 @@ const {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -89,7 +83,8 @@ const {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', authenticateToken, requireLibrarian, getAllReaders);
+router.get('/', authenticateToken, getAllReaders);
+
 /**
  * @swagger
  * /api/readers/search:
@@ -141,12 +136,6 @@ router.get('/', authenticateToken, requireLibrarian, getAllReaders);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -154,7 +143,8 @@ router.get('/', authenticateToken, requireLibrarian, getAllReaders);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/search', authenticateToken, requireLibrarian, searchReaders);
+router.get('/search', authenticateToken, searchReaders);
+
 /**
  * @swagger
  * /api/readers/category/{category}:
@@ -207,12 +197,6 @@ router.get('/search', authenticateToken, requireLibrarian, searchReaders);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -220,7 +204,8 @@ router.get('/search', authenticateToken, requireLibrarian, searchReaders);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/category/:category', authenticateToken, requireLibrarian, getReadersByCategory);
+router.get('/category/:category', authenticateToken, getReadersByCategory);
+
 /**
  * @swagger
  * /api/readers/{id}:
@@ -249,12 +234,6 @@ router.get('/category/:category', authenticateToken, requireLibrarian, getReader
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Access denied
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader not found
  *         content:
@@ -268,7 +247,7 @@ router.get('/category/:category', authenticateToken, requireLibrarian, getReader
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), getReaderById);
+router.get('/:id', authenticateToken, getReaderById);
 
 /**
  * @swagger
@@ -343,12 +322,6 @@ router.get('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), getRead
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -356,7 +329,8 @@ router.get('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), getRead
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticateToken, requireLibrarian, createReader);
+router.post('/', authenticateToken, createReader);
+
 /**
  * @swagger
  * /api/readers/{id}:
@@ -433,12 +407,6 @@ router.post('/', authenticateToken, requireLibrarian, createReader);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Access denied
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader not found
  *         content:
@@ -452,7 +420,8 @@ router.post('/', authenticateToken, requireLibrarian, createReader);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), updateReader);
+router.put('/:id', authenticateToken, updateReader);
+
 /**
  * @swagger
  * /api/readers/{id}:
@@ -485,12 +454,6 @@ router.put('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), updateR
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader not found
  *         content:
@@ -504,6 +467,6 @@ router.put('/:id', authenticateToken, requireOwnershipOrLibrarian('id'), updateR
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', authenticateToken, requireLibrarian, deleteReader);
+router.delete('/:id', authenticateToken, deleteReader);
 
 module.exports = router;

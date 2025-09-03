@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireLibrarian } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const {
     getAllBooks,
     getBookById,
@@ -281,12 +281,6 @@ router.get('/:id', getBookById);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -294,7 +288,7 @@ router.get('/:id', getBookById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticateToken, requireLibrarian, createBook);
+router.post('/', authenticateToken, createBook);
 
 /**
  * @swagger
@@ -369,12 +363,6 @@ router.post('/', authenticateToken, requireLibrarian, createBook);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Book not found
  *         content:
@@ -388,7 +376,7 @@ router.post('/', authenticateToken, requireLibrarian, createBook);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', authenticateToken, requireLibrarian, updateBook);
+router.put('/:id', authenticateToken, updateBook);
 
 /**
  * @swagger
@@ -422,12 +410,6 @@ router.put('/:id', authenticateToken, requireLibrarian, updateBook);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Book not found
  *         content:
@@ -441,6 +423,6 @@ router.put('/:id', authenticateToken, requireLibrarian, updateBook);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete('/:id', authenticateToken, requireLibrarian, deleteBook);
+router.delete('/:id', authenticateToken, deleteBook);
 
 module.exports = router;

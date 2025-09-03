@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticateToken, requireLibrarian, requireOwnershipOrLibrarian } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
 const {
     getAllRentals,
     getRentalById,
@@ -83,12 +83,6 @@ const {
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -96,7 +90,7 @@ const {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/', authenticateToken, requireLibrarian, getAllRentals);
+router.get('/', authenticateToken, getAllRentals);
 
 /**
  * @swagger
@@ -143,12 +137,6 @@ router.get('/', authenticateToken, requireLibrarian, getAllRentals);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -156,7 +144,7 @@ router.get('/', authenticateToken, requireLibrarian, getAllRentals);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/active', authenticateToken, requireLibrarian, getActiveRentals);
+router.get('/active', authenticateToken, getActiveRentals);
 
 /**
  * @swagger
@@ -203,12 +191,6 @@ router.get('/active', authenticateToken, requireLibrarian, getActiveRentals);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -216,7 +198,7 @@ router.get('/active', authenticateToken, requireLibrarian, getActiveRentals);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/overdue', authenticateToken, requireLibrarian, getOverdueRentals);
+router.get('/overdue', authenticateToken, getOverdueRentals);
 
 /**
  * @swagger
@@ -269,12 +251,6 @@ router.get('/overdue', authenticateToken, requireLibrarian, getOverdueRentals);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -282,7 +258,7 @@ router.get('/overdue', authenticateToken, requireLibrarian, getOverdueRentals);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/stats', authenticateToken, requireLibrarian, getRentalStats);
+router.get('/stats', authenticateToken, getRentalStats);
 
 /**
  * @swagger
@@ -341,12 +317,6 @@ router.get('/stats', authenticateToken, requireLibrarian, getRentalStats);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Access denied
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader not found
  *         content:
@@ -360,7 +330,7 @@ router.get('/stats', authenticateToken, requireLibrarian, getRentalStats);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/reader/:readerId', authenticateToken, requireOwnershipOrLibrarian('readerId'), getReaderRentals);
+router.get('/reader/:readerId', authenticateToken, getReaderRentals);
 
 /**
  * @swagger
@@ -390,12 +360,6 @@ router.get('/reader/:readerId', authenticateToken, requireOwnershipOrLibrarian('
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Rental not found
  *         content:
@@ -409,7 +373,7 @@ router.get('/reader/:readerId', authenticateToken, requireOwnershipOrLibrarian('
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/:id', authenticateToken, requireLibrarian, getRentalById);
+router.get('/:id', authenticateToken, getRentalById);
 
 /**
  * @swagger
@@ -459,12 +423,6 @@ router.get('/:id', authenticateToken, requireLibrarian, getRentalById);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Reader or book not found
  *         content:
@@ -478,7 +436,7 @@ router.get('/:id', authenticateToken, requireLibrarian, getRentalById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/', authenticateToken, requireLibrarian, createRental);
+router.post('/', authenticateToken, createRental);
 
 /**
  * @swagger
@@ -533,12 +491,6 @@ router.post('/', authenticateToken, requireLibrarian, createRental);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
- *       403:
- *         description: Forbidden - Librarian access required
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
  *       404:
  *         description: Rental not found
  *         content:
@@ -552,6 +504,6 @@ router.post('/', authenticateToken, requireLibrarian, createRental);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id/return', authenticateToken, requireLibrarian, returnBook);
+router.put('/:id/return', authenticateToken, returnBook);
 
 module.exports = router;

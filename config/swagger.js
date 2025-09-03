@@ -6,8 +6,8 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'Book Rental API',
-      version: '2.0.0',
-      description: 'Comprehensive API documentation for the Library Rental System. This API provides endpoints for managing books, readers, rentals, and authentication.',
+      version: '2.1.0',
+      description: 'Backend API documentation for the Book Rental System. This API provides endpoints for managing books, readers, rentals, and authentication.',
     },
     tags: [
       {
@@ -36,7 +36,7 @@ const options = {
         url: 
         process.env.NODE_ENV === 'production' 
         ? process.env.API_URL
-        : 'http://localhost:3000',
+        : 'http://localhost:3000', // Fallback for local development
         description: 
         process.env.NODE_ENV === 'production' 
         ? 'Production server' 
@@ -70,12 +70,6 @@ const options = {
               type: 'string',
               format: 'email',
               description: 'User email',
-            },
-            role: {
-              type: 'string',
-              enum: ['admin', 'librarian', 'reader'],
-              default: 'reader',
-              description: 'User role',
             },
             isActive: {
               type: 'boolean',

@@ -4,7 +4,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const createError = require('http-errors');
 
 const register = asyncHandler(async (req, res) => {
-    const { username, email, password, role } = req.body;
+    const { username, email, password } = req.body;
 
     const existingUser = await User.findOne({ 
         $or: [{ email }, { username }] 
@@ -17,16 +17,14 @@ const register = asyncHandler(async (req, res) => {
     const user = new User({
         username,
         email,
-        password,
-        role: role || 'reader'
+        password
     });
 
     await user.save();
 
     const token = generateToken({ 
         id: user._id, 
-        username: user.username, 
-        role: user.role 
+        username: user.username
     });
     
     const refreshToken = generateRefreshToken({ 
@@ -40,8 +38,7 @@ const register = asyncHandler(async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email,
-                role: user.role
+                email: user.email
             },
             token,
             refreshToken
@@ -70,8 +67,7 @@ const login = asyncHandler(async (req, res) => {
 
     const token = generateToken({ 
         id: user._id, 
-        username: user.username, 
-        role: user.role 
+        username: user.username
     });
     
     const refreshToken = generateRefreshToken({ 
@@ -85,8 +81,7 @@ const login = asyncHandler(async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
-                email: user.email,
-                role: user.role
+                email: user.email
             },
             token,
             refreshToken
@@ -110,8 +105,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const newToken = generateToken({ 
         id: user._id, 
-        username: user.username, 
-        role: user.role 
+        username: user.username
     });
 
     res.json({
@@ -137,7 +131,6 @@ const getCurrentUser = asyncHandler(async (req, res) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
-                role: user.role,
                 createdAt: user.createdAt
             }
         }
